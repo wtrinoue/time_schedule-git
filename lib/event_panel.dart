@@ -1,0 +1,51 @@
+import 'package:flutter/material.dart';
+
+class EventPanel extends StatelessWidget {
+  const EventPanel({super.key, required this.event});
+
+  final Event event;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: Colors.blue, width: 2),
+      ),
+      child: Container(
+        height: 100,
+        width: 270,
+        child: Row(
+          children: [
+            SizedBox(width: 20),
+            Container(
+              width: 60,
+              child: Text(style: TextStyle(fontSize: 30), "${event.times}"),
+            ),
+            SizedBox(width: 5),
+            Container(
+              width: 150,
+              child: Text(style: TextStyle(fontSize: 20), event.name),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class Event {
+  const Event({required this.number, required this.times, required this.name});
+
+  final int number;
+  final int times;
+  final String name;
+}
+
+int sumOfEventTimesUntil(List<Event> events, int number) {
+  int minutes = 0;
+  int num = number;
+  for (int i = 0; i < num; i++) {
+    minutes = minutes + events[i].times;
+  }
+  return minutes;
+}
