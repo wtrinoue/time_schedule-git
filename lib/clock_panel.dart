@@ -12,11 +12,11 @@ class ClockPanel extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
       ),
       child: SizedBox(
-        height: 100,
+        height: 40,
         width: 100,
         child: Center(
           child: Text(
-            style: TextStyle(fontSize: 30),
+            style: TextStyle(fontSize: 20),
             "${clock.outputEventHour()}:${clock.outputEventMinute() ~/ 10}${clock.outputEventMinute() % 10}",
           ),
         ),

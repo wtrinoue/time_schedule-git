@@ -29,4 +29,5 @@ class MyApp extends StatelessWidget {
 ・JSONファイルに保存して複数予定を登録できるようにする
 ・永続化マイグレーションを利用してアプリを閉じてもひらけるようにする。
 ・BottomNvigationBarを利用して複数の予定を切り替えられるようにする。
+・間に予定を入れられるようにする
  */
