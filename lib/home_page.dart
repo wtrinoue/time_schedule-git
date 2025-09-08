@@ -21,53 +21,32 @@ class _HomePageState extends State<HomePage> {
     minutes: 0,
   );
 
-  void addNewClock() async {
-    TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-    if (picked != null) {
-      TimeOfDay selectedTime = picked;
-      setState(() {
-        clocks.add(
-          Clock(
-            number: clocks.length,
-            startHour: selectedTime.hour,
-            startMinute: selectedTime.minute,
-            minutes: 10,
-          ),
-        );
-      });
-    }
+  List<Clock> returnNullClocks() {
+    setState(() {});
+    return <Clock>[];
   }
 
-  void deleteAllClock() {
-    setState(() {
-      clocks = [];
-    });
+  List<Event> returnNullEvents() {
+    setState(() {});
+    return <Event>[];
   }
 
-  void deleteAllEvent() {
-    setState(() {
-      events = [];
-    });
-  }
-
-  void eventsToClocks(Clock allStartClock) {
+  List<Clock> eventsMakeClocks(Clock originClock, List<Event> events) {
     //イベントごとの時間をもとに時刻を形成
-    clocks = [];
+    List<Clock> newClocks = [];
     setState(() {
-      for (int cnt = 0; cnt < events.length; cnt++) {
-        clocks.add(
+      for (int cnt = 0; cnt < events.length + 1; cnt++) {
+        newClocks.add(
           Clock(
             number: cnt,
-            startHour: allStartClock.startHour,
-            startMinute: allStartClock.startMinute,
+            startHour: originClock.startHour,
+            startMinute: originClock.startMinute,
             minutes: sumOfEventTimesUntil(events, cnt),
           ),
         );
       }
     });
+    return newClocks;
   }
 
   Future<Clock> changeOriginClock(Clock originClock) async {
@@ -97,7 +76,7 @@ class _HomePageState extends State<HomePage> {
     return lastOriginStartClock;
   }
 
-  void addNewEvent() async {
+  Future<List<Event>> addNewEvent(int addNumber, List<Event> events) async {
     int lastMinutes = 0;
     String lastEventNameText = "";
 
@@ -116,13 +95,32 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
-    events.add(
-      Event(number: events.length, times: lastMinutes, name: lastEventNameText),
+
+    // List<Event> newEvents =
+    //     events.sublist(0, addNumber - 1) +
+    //     [Event(number: 0, times: lastMinutes, name: lastEventNameText)] +
+    //     events.sublist(addNumber, events.length - 1);
+
+    List<Event> newEvents = [];
+
+    for (int cnt = 0; cnt < addNumber; cnt++) {
+      newEvents.add(events[cnt]);
+    }
+    newEvents.add(
+      Event(number: 0, times: lastMinutes, name: lastEventNameText),
     );
-    setState(() {});
+    for (int cnt = addNumber; cnt < events.length; cnt++) {
+      newEvents.add(events[cnt]);
+    }
+
+    for (int cnt = 0; cnt < newEvents.length; cnt++) {
+      newEvents[cnt].number = cnt;
+    }
+
+    return newEvents;
   }
 
-  void changeEventContent(Event event) async {
+  Future<Event> changeEventContent(Event event) async {
     int lastMinutes = 0;
     String lastEventNameText = "";
 
@@ -143,19 +141,20 @@ class _HomePageState extends State<HomePage> {
       },
     );
 
-    events[event.number] = Event(
+    setState(() {});
+    return Event(
       number: event.number,
       times: lastMinutes,
       name: lastEventNameText,
     );
-
-    eventsToClocks(originClock);
-
-    setState(() {});
   }
 
-  void changeClockContent(Clock clock) async {
+  Future<int> changeClockReturnEventTimes(
+    Clock clock,
+    List<Clock> clocks,
+  ) async {
     if (clock.number == 0) {
+      return 0;
     } else {
       int lastHour = 0;
       int lastMinute = 0;
@@ -182,24 +181,19 @@ class _HomePageState extends State<HomePage> {
           (lastHour - clocks[clock.number - 1].outputEventHour()) * 60 +
           (lastMinute - clocks[clock.number - 1].outputEventMinute());
 
-      events[clock.number - 1] = Event(
-        number: clock.number - 1,
-        times: newEventTimes,
-        name: events[clock.number - 1].name,
-      );
-
       setState(() {});
+      return newEventTimes;
     }
   }
 
-  List<Widget> createEventPanels(List<Event> events) {
+  List<Widget> eventsToEventPanels(List<Event> events) {
     List<Widget> eventPanels = [];
     for (var event in events) {
       eventPanels.add(
         GestureDetector(
           child: EventPanel(event: event),
-          onTap: () {
-            changeEventContent(event);
+          onTap: () async {
+            events[event.number] = await changeEventContent(event);
           },
         ),
       );
@@ -207,14 +201,17 @@ class _HomePageState extends State<HomePage> {
     return eventPanels;
   }
 
-  List<Widget> createClockPanels(List<Clock> clocks) {
+  List<Widget> clocksToClockPanels(List<Clock> oneClocks) {
     List<Widget> clockPanels = [];
-    for (var clock in clocks) {
+    for (var clock in oneClocks) {
       clockPanels.add(
         GestureDetector(
           child: ClockPanel(clock: clock),
-          onTap: () {
-            changeClockContent(clock);
+          onTap: () async {
+            if (clock.number != 0) {
+              events[clock.number - 1]
+                  .times = await changeClockReturnEventTimes(clock, oneClocks);
+            }
           },
         ),
       );
@@ -224,29 +221,89 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    eventsToClocks(originClock);
-    List<Widget> eventPanels = createEventPanels(events);
-    List<Widget> clockPanels = createClockPanels(clocks);
+    clocks = eventsMakeClocks(originClock, events);
+    //理ロード時に上のコードを呼び出すことによってちゃんと動作する。
+    List<Widget> eventPanels = eventsToEventPanels(events);
+    List<Widget> clockPanels = clocksToClockPanels(clocks);
 
-    Widget widget = SizedBox(
-      height: 650,
-      child: SingleChildScrollView(
-        child: Column(
-          children:
-              <Widget>[
-                GestureDetector(
-                  child: StartTimePanel(allStartClock: originClock),
-                  onTap: () async {
-                    originClock = await changeOriginClock(originClock);
+    List<Widget> widgets = List.generate(events.length, (index) {
+      return Column(
+        children: [
+          Row(
+            children: [
+              clockPanels[index],
+              Align(
+                alignment: Alignment.center,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    events = await addNewEvent(index, events);
                     setState(() {});
                   },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                  child: SizedBox(
+                    height: 20,
+                    width: 50,
+                    child: Center(
+                      child: Text(style: TextStyle(color: Colors.white), "追加"),
+                    ),
+                  ),
                 ),
-              ] +
-              List.generate(events.length, (index) {
-                return Row(children: [clockPanels[index], eventPanels[index]]);
-              }),
+              ),
+            ],
+          ),
+          eventPanels[index],
+        ],
+      );
+    });
+
+    Widget widget = Column(
+      children: [
+        GestureDetector(
+          child: StartTimePanel(allStartClock: originClock),
+          onTap: () async {
+            originClock = await changeOriginClock(originClock);
+            setState(() {});
+          },
         ),
-      ),
+        SizedBox(
+          height: 600,
+          child: SingleChildScrollView(
+            child: Column(
+              children:
+                  widgets +
+                  <Widget>[
+                    Row(
+                      children: [
+                        clockPanels[events.length],
+                        Align(
+                          alignment: Alignment.center,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              events = await addNewEvent(events.length, events);
+                              setState(() {});
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                            ),
+                            child: SizedBox(
+                              height: 20,
+                              width: 50,
+                              child: Center(
+                                child: Text(
+                                  style: TextStyle(color: Colors.white),
+                                  "追加",
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+            ),
+          ),
+        ),
+      ],
     );
 
     return Scaffold(
@@ -255,8 +312,12 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          ElevatedButton(onPressed: addNewEvent, child: Text("追加")),
-          ElevatedButton(onPressed: deleteAllEvent, child: Text("消去")),
+          ElevatedButton(
+            onPressed: () {
+              events = returnNullEvents();
+            },
+            child: Text("消去"),
+          ),
         ],
       ),
     );
@@ -264,8 +325,40 @@ class _HomePageState extends State<HomePage> {
 }
 
 /*
+「これからの希望」
 このアプリの目的は開始時間と各イベントのかかる時間をもとに一日のスケジュールを組むことにある。
 よって、開始時間と各イベントの時間によって別要素が決まるようにしなければいけない。
 つまり。時刻は一日の開始時間と各イベントの時間に縦続する。
+消去できるようにする。
+
+「仕様について」
 パネルは基本的に表示のみにしている。
+関数はできるだけグローバル変数をいじくる形にしないようにしている。
+開始時間とイベント間の時間で決まっている。
+
+
  */
+
+//以下の形式にする
+void a() {
+  final data = {
+    "schedules": [
+      {
+        "scheduleName": "一日目",
+        "starttime": 19,
+        "events": [
+          {"number": 1, "times": 3, "name": "Alice"},
+          {"number": 2, "times": 5, "name": "Bob"},
+        ],
+      },
+      {
+        "scheduleName": "二日目",
+        "starttime": 19,
+        "events": [
+          {"number": 1, "times": 3, "name": "Alice"},
+          {"number": 2, "times": 5, "name": "Bob"},
+        ],
+      },
+    ],
+  };
+}

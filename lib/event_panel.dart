@@ -13,7 +13,7 @@ class EventPanel extends StatelessWidget {
       ),
       child: Container(
         height: 100,
-        width: 270,
+        width: 400,
         child: Row(
           children: [
             SizedBox(width: 20),
@@ -34,11 +34,28 @@ class EventPanel extends StatelessWidget {
 }
 
 class Event {
-  const Event({required this.number, required this.times, required this.name});
+  Event({required this.number, required this.times, required this.name});
 
-  final int number;
-  final int times;
-  final String name;
+  int number;
+  int times;
+  String name;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> data = {
+      "number": number,
+      "times": times,
+      "name": name,
+    };
+    return data;
+  }
+
+  factory Event.fromJson(Map<String, dynamic> json) {
+    return Event(
+      number: json["number"],
+      times: json["times"],
+      name: json["name"],
+    );
+  }
 }
 
 int sumOfEventTimesUntil(List<Event> events, int number) {
@@ -48,4 +65,8 @@ int sumOfEventTimesUntil(List<Event> events, int number) {
     minutes = minutes + events[i].times;
   }
   return minutes;
+}
+
+void change(Event event) {
+  event.number = 0;
 }
