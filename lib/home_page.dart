@@ -1,8 +1,14 @@
+import 'dart:convert';
+
 import "package:flutter/material.dart";
-import 'clock_panel.dart';
-import 'event_panel.dart';
+import 'package:time_schedule/schedule.dart';
+import 'package:sqflite/sqflite.dart';
+import 'clock.dart';
+import 'event.dart';
 import 'regist_dialog.dart';
 import 'start_time_panel.dart';
+import 'schedule.dart';
+import 'sql.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,14 +18,50 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Event> events = [];
-  List<Clock> clocks = [];
-  Clock originClock = Clock(
-    number: 0,
-    startHour: 0,
-    startMinute: 0,
-    minutes: 0,
-  );
+  late Database db;
+  late ScheduleManager scheduleManager;
+  late List<Event> events;
+  late List<Clock> clocks;
+  late Clock originClock;
+
+  @override
+  void initState() {
+    super.initState();
+    // events = [];
+    // clocks = [];
+    // originClock = Clock(number: 0, startHour: 0, startMinute: 0, minutes: 0);
+    initSetUp();
+  }
+
+  Future<void> initSetUp() async {
+    db = await getDatabase();
+    final List<Map<String, dynamic>> result = await db.query(
+      "schedules",
+      where: "id = 1",
+    );
+    Map<String, dynamic> scheduleJson = jsonDecode(result[0]["content"]);
+    scheduleManager = ScheduleManager(scheduleJsonData: scheduleJson);
+    events = scheduleManager.eventsList;
+    clocks = [];
+    originClock = Clock(
+      number: 0,
+      startHour: scheduleManager.originHour,
+      startMinute: scheduleManager.originMinute,
+      minutes: 0,
+    );
+    setState(() {});
+  }
+
+  Future<void> changeDatabase() async {
+    scheduleManager.updateScheduleManager(
+      "a",
+      originClock.startHour,
+      originClock.startMinute,
+      events,
+    );
+    print(jsonEncode(scheduleManager.outputScheduleJson()));
+    updateDatabase(db, 1, jsonEncode(scheduleManager.outputScheduleJson()));
+  }
 
   List<Clock> returnNullClocks() {
     setState(() {});
@@ -55,7 +97,7 @@ class _HomePageState extends State<HomePage> {
     TimeOfDay? picked = await showTimePicker(
       context: context,
       builder: (context, child) {
-        return RegistOriginTimeDialog(originClock: originClock);
+        return RegistOriginTimeDialogNo1(originClock: originClock);
       },
       initialTime: TimeOfDay(
         hour: originClock.startHour,
@@ -84,7 +126,7 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (context) {
         return Center(
-          child: RegistEventDialog(
+          child: RegistEventDialogNo1(
             onChangedMinutes: (minutesList) {
               lastMinutes = minutesList;
             },
@@ -128,7 +170,7 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (context) {
         return Center(
-          child: RegistEventDialog(
+          child: RegistEventDialogNo1(
             onChangedMinutes: (minutesList) {
               lastMinutes = minutesList;
             },
@@ -163,7 +205,7 @@ class _HomePageState extends State<HomePage> {
         context: context,
         builder: (context) {
           return Center(
-            child: RegistClockDialog(
+            child: RegistClockDialogNo1(
               onChangedHour: (hour) {
                 lastHour = hour;
               },
@@ -318,6 +360,12 @@ class _HomePageState extends State<HomePage> {
             },
             child: Text("消去"),
           ),
+          ElevatedButton(
+            onPressed: () {
+              changeDatabase();
+            },
+            child: Text("保存"),
+          ),
         ],
       ),
     );
@@ -340,25 +388,29 @@ class _HomePageState extends State<HomePage> {
  */
 
 //以下の形式にする
-void a() {
-  final data = {
-    "schedules": [
+String a() {
+  Map<String, List<Map<String, dynamic>>> data = {
+    "schedulesJsonList": [
       {
         "scheduleName": "一日目",
-        "starttime": 19,
-        "events": [
+        "originHour": 19,
+        "originMinute": 10,
+        "eventsJsonList": [
           {"number": 1, "times": 3, "name": "Alice"},
           {"number": 2, "times": 5, "name": "Bob"},
         ],
       },
       {
         "scheduleName": "二日目",
-        "starttime": 19,
-        "events": [
+        "originHour": 19,
+        "originMinute": 10,
+        "eventsJsonList": [
           {"number": 1, "times": 3, "name": "Alice"},
           {"number": 2, "times": 5, "name": "Bob"},
         ],
       },
     ],
   };
+
+  return jsonEncode(data);
 }

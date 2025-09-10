@@ -6,7 +6,12 @@ class ClockPanel extends StatelessWidget {
   final Clock clock;
   @override
   Widget build(BuildContext context) {
+    Color clockColor = switch (clock.number) {
+      0 => Colors.yellow,
+      _ => Colors.white,
+    };
     return Card(
+      color: clockColor,
       shape: RoundedRectangleBorder(
         side: BorderSide(color: Colors.blue, width: 2),
         borderRadius: BorderRadius.circular(30),
