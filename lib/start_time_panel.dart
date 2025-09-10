@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import "clock_panel.dart";
+import "clock.dart";
 
 class StartTimePanel extends StatefulWidget {
   final Clock allStartClock;

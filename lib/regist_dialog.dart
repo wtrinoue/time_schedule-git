@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'event_panel.dart';
-import 'clock_panel.dart';
+import 'event.dart';
+import 'clock.dart';
 
-class RegistEventDialog extends StatefulWidget {
+class RegistEventDialogNo1 extends StatefulWidget {
   final ValueChanged<int> onChangedMinutes;
   final ValueChanged<String> onChangedName;
   final Event? event;
-  const RegistEventDialog({
+  const RegistEventDialogNo1({
     super.key,
     required this.onChangedMinutes,
     required this.onChangedName,
@@ -14,10 +14,10 @@ class RegistEventDialog extends StatefulWidget {
   });
 
   @override
-  State<RegistEventDialog> createState() => _RegistEventDialogState();
+  State<RegistEventDialogNo1> createState() => _RegistEventDialogNo1State();
 }
 
-class _RegistEventDialogState extends State<RegistEventDialog> {
+class _RegistEventDialogNo1State extends State<RegistEventDialogNo1> {
   List<int> minutesList = [0, 0, 0];
   List<int> firstMinutesList = [0, 0, 0];
   TextEditingController controller = TextEditingController();
@@ -103,13 +103,13 @@ class _RegistEventDialogState extends State<RegistEventDialog> {
   }
 }
 
-class RegistClockDialog extends StatefulWidget {
+class RegistClockDialogNo1 extends StatefulWidget {
   final ValueChanged<int> onChangedHour;
   final ValueChanged<int> onChangedMinute;
   final Clock beforeClock;
   final Clock clock;
 
-  const RegistClockDialog({
+  const RegistClockDialogNo1({
     super.key,
     required this.onChangedHour,
     required this.onChangedMinute,
@@ -118,10 +118,10 @@ class RegistClockDialog extends StatefulWidget {
   });
 
   @override
-  State<RegistClockDialog> createState() => _RegistClockDialogState();
+  State<RegistClockDialogNo1> createState() => _RegistClockDialogNo1State();
 }
 
-class _RegistClockDialogState extends State<RegistClockDialog> {
+class _RegistClockDialogNo1State extends State<RegistClockDialogNo1> {
   List<int> timeList = [];
   List<int> firstTimeList = [];
 
@@ -205,16 +205,17 @@ class _RegistClockDialogState extends State<RegistClockDialog> {
   }
 }
 
-class RegistOriginTimeDialog extends StatefulWidget {
+class RegistOriginTimeDialogNo1 extends StatefulWidget {
   final Clock originClock;
 
-  const RegistOriginTimeDialog({super.key, required this.originClock});
+  const RegistOriginTimeDialogNo1({super.key, required this.originClock});
 
   @override
-  State<RegistOriginTimeDialog> createState() => _RegistOriginTimeDialogState();
+  State<RegistOriginTimeDialogNo1> createState() =>
+      _RegistOriginTimeDialogNo1State();
 }
 
-class _RegistOriginTimeDialogState extends State<RegistOriginTimeDialog> {
+class _RegistOriginTimeDialogNo1State extends State<RegistOriginTimeDialogNo1> {
   @override
   Widget build(BuildContext context) {
     return TimePickerDialog(

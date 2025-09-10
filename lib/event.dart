@@ -11,18 +11,18 @@ class EventPanel extends StatelessWidget {
       shape: RoundedRectangleBorder(
         side: BorderSide(color: Colors.blue, width: 2),
       ),
-      child: Container(
+      child: SizedBox(
         height: 100,
         width: 400,
         child: Row(
           children: [
             SizedBox(width: 20),
-            Container(
+            SizedBox(
               width: 60,
               child: Text(style: TextStyle(fontSize: 30), "${event.times}"),
             ),
             SizedBox(width: 5),
-            Container(
+            SizedBox(
               width: 150,
               child: Text(style: TextStyle(fontSize: 20), event.name),
             ),
@@ -67,6 +67,18 @@ int sumOfEventTimesUntil(List<Event> events, int number) {
   return minutes;
 }
 
-void change(Event event) {
-  event.number = 0;
+List<Map<String, dynamic>> eventsListToJsonList(List<Event> events) {
+  List<Map<String, dynamic>> eventsJsonList = [];
+  for (Event event in events) {
+    eventsJsonList.add(event.toJson());
+  }
+  return eventsJsonList;
+}
+
+List<Event> jsonListToEventsList(List<dynamic> jsonList) {
+  List<Event> eventsList = [];
+  for (Map<String, dynamic> eventJson in jsonList) {
+    eventsList.add(Event.fromJson(eventJson));
+  }
+  return eventsList;
 }
